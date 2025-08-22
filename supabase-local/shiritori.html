@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8" />
+<title>shiritori(local-minimum)</title>
+
+<main>
+  <p>Game ID: <input id="gameId" value="" size="40" /> <button id="gen">新規作成</button></p>
+  <p>Your name: <input id="player" value="you" size="20" /></p>
+  <p>word: <input id="word" size="30" /> <button id="send">送信</button></p>
+  <hr />
+  <h3>log</h3>
+  <pre id="log"></pre>
+</main>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  // $ supabase statue で確認した anon key を入力する
+  const SUPABASE_URL = "http://127.0.0.1:54321";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // 簡易ログ
+  const log = (...args) => {
+    const el = document.getElementById('log');
+    el.textContent += args.join(' ') + "\n";
+    el.scrollTop = el.scrollHeight;
+  };
+
+  // ゲームIDを作る（UUIDっぽいランダム）
+  const rnd = () => crypto.randomUUID?.() || String(Math.random()).slice(2);
+
+  const gameIdEl = document.getElementById('gameId');
+  document.getElementById('gen').onclick = () => gameIdEl.value = rnd();
+
+  let channel = null; //現在のチャンネルを保持
+
+  // Realtime: このゲームIDの新着手だけsubscribe
+  const subscribe = async (gameId) => {
+    if (!gameId) return;
+
+    if (channel) {
+      await sb.removeChannel(channel);
+      channel = null;
+    }
+
+    log("subscribe:", gameId);
+    channel = sb
+      .channel('moves:' + gameId)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'moves',
+        filter: `game_id=eq.${gameId}`
+      }, payload => {
+        const r = payload.new;
+        log(`[${new Date(r.created_at).toLocaleTimeString()}] ${r.player} → ${r.word}`);
+      })
+
+    const status = await channel.subscribe();
+    log("status:", status);
+  };
+
+  // 送信
+  document.getElementById('send').onclick = async () => {
+    const gameId = gameIdEl.value.trim();
+    const player = document.getElementById('player').value.trim() || 'you';
+    const word = document.getElementById('word').value.trim();
+    if (!gameId || !word) return alert("Input Game ID and word.");
+    const { error } = await sb.from('moves').insert({ game_id: gameId, player, word });
+    if (error) return log("ERROR:", error.message);
+    document.getElementById('word').value = '';
+  };
+
+  const joinBtn = document.createElement("button");
+  joinBtn.textContent = "join/Resubscribe";
+  joinBtn.onclick = () => subscribe(gameIdEl.value.trim());
+  document.querySelector("main").insertBefore(joinBtn, document.querySelector("hr"));
+
+  // 初期：適当に新しいゲームIDでsubscribe
+  gameIdEl.value = rnd();
+  subscribe(gameIdEl.value);
+  gameIdEl.addEventListener('change', e => subscribe(e.target.value.trim()));
+</script>
+
+</html>
