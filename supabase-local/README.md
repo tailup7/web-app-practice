@@ -75,7 +75,15 @@ alter publication supabase_realtime add table moves;
 ```
 + 最後に、フロントエンドを動作させる(添付のhtmlファイル(これも適当に作ったサンプル)を開く)
 
+### 使い方
++ HTMLを2個ブラウザ上で開く
++ 2枚のページでGameIDを揃える(片方のGameIDをもう一方にコピペする)
++ 両方のページで `your name` を適当に入力する
++ 両方のページで `Join/Resubscribe` をクリックする
++ 適当にワードを入力して送信すると両方のページにログが出力される
+
 ### 参考リンク
 https://qiita.com/oka_yu_f/items/d5044ecd571315c25a93 <br>
 https://qiita.com/SatoshiSobue/items/a612ebbb3a9242c09db5 <br>
 https://zenn.dev/bani24884/articles/e3f56462b9f409
+
