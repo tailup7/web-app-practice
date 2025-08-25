@@ -29,16 +29,18 @@ $ curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_l
 $ sudo mv supabase /usr/local/bin
 $ supabase --version
 ```
-+ 適当な場所にフォルダ作成し、そこでDockerコンテナを立てる
++ 適当な場所にフォルダ作成し、そこでsupabaseプロジェクトのDockerコンテナを立てる
 ```
 $ mkdir foo && cd foo
 $ supabase init
 $ supabase start
 ```
-+ コンテナが起動していることを確認する
++ プロジェクトのコンテナが正しく起動していることを確認する <br>
+
 ```
 $ docker ps
 ```
++ (ちなみに、supabaseプロジェクトはPostgreSQLに54322のポート番号を割り当てる。複数の supabaseプロジェクトに対して同時にコンテナを起動することはできない(ポート競合)。すでに他のプロジェクトで supabase start していた場合は、先にそちらを stop する必要がある)
 + 準備ができたので、スキーマを作成する。以下のコマンドで表示される Studio URL のリンクへ飛び、サイドバーから SQL Editor を開く。
 ```
 $ supabase status
@@ -86,4 +88,5 @@ alter publication supabase_realtime add table moves;
 https://qiita.com/oka_yu_f/items/d5044ecd571315c25a93 <br>
 https://qiita.com/SatoshiSobue/items/a612ebbb3a9242c09db5 <br>
 https://zenn.dev/bani24884/articles/e3f56462b9f409
+
 
